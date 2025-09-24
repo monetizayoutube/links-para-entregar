@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Entrega de Link Único</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    #link-area a { font-size: 1.2em; color: blue; }
+    #reset-btn { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1 id="mensagem">Carregando...</h1>
+  <div id="link-area"></div>
+  <button id="reset-btn" style="display:none;">Resetar meu link (para teste)</button>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxf7A4fGFYyIh9uzqZvpMsZG_wyYKSSQwkVTxxm-2jmWetDFTKwc34LvAddNXseBIND/exec';  // <-- substitua pela URL do Apps Script
+    const STORAGE_KEY = 'link_unico_usuario';
+
+    async function obterLinkUnico() {
+      const linkSalvo = localStorage.getItem(STORAGE_KEY);
+      if (linkSalvo) {
+        document.getElementById('mensagem').innerText = 'Seu link exclusivo:';
+        document.getElementById('link-area').innerHTML =
+          `<a href="${linkSalvo}" target="_blank">${linkSalvo}</a>`;
+        return;
+      }
+
+      try {
+        const resp = await fetch(API_URL);
+        const data = await resp.json();
+        if (data.link) {
+          localStorage.setItem(STORAGE_KEY, data.link);
+          document.getElementById('mensagem').innerText = 'Seu link exclusivo:';
+          document.getElementById('link-area').innerHTML =
+            `<a href="${data.link}" target="_blank">${data.link}</a>`;
+        } else {
+          document.getElementById('mensagem').innerText = data.message;
+        }
+      } catch (err) {
+        document.getElementById('mensagem').innerText =
+          'Erro ao buscar o link. Tente novamente mais tarde.';
+        console.error('Erro fetch:', err);
+      }
+    }
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    });
+
+    // Mostrar botão de reset só para teste (pode remover em produção)
+    document.getElementById('reset-btn').style.display = 'inline-block';
+
+    // Chama função ao carregar
+    obterLinkUnico();
+  </script>
+</body>
+</html>
